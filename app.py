@@ -3,14 +3,20 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# ---------------- PAGE SETTINGS ----------------
+# --------------------------------
+# 1. Page Configuration
+# --------------------------------
+
 st.set_page_config(
     page_title="Heart Disease Risk Prediction",
     page_icon="❤️",
     layout="wide"
 )
 
-# ---------------- LOAD MODEL ----------------
+# --------------------------------
+# 2. Load Saved Machine Learning Files
+# --------------------------------
+
 @st.cache_resource
 def load_files():
     model = joblib.load("heart_disease_model.pkl")
@@ -20,7 +26,27 @@ def load_files():
 
 model, scaler, features = load_files()
 
-# ---------------- MODEL RESULTS ----------------
+# --------------------------------
+# 3. Project Title
+# --------------------------------
+
+st.title("❤️ Heart Disease Risk Prediction")
+st.write(
+    "A Machine Learning project to predict heart disease "
+    "using patient health information."
+)
+
+st.info(
+    "This application is an educational project. "
+    "It is not a medical diagnosis tool."
+)
+
+st.divider()
+
+# --------------------------------
+# 4. Model Performance Data
+# --------------------------------
+
 results = pd.DataFrame({
     "Model": [
         "Logistic Regression",
@@ -31,180 +57,224 @@ results = pd.DataFrame({
     "Accuracy": [0.7728, 0.6544, 0.7739, 0.7222],
     "Precision": [0.6858, 0.4335, 0.6927, 0.5613],
     "Recall": [0.4606, 0.4606, 0.4550, 0.3780],
-    "F1 Score": [0.5510, 0.4466, 0.5493, 0.4518]
+    "F1-score": [0.5510, 0.4466, 0.5493, 0.4518]
 })
 
-# ---------------- HEADER ----------------
-st.title("❤️ Heart Disease Risk Prediction")
-st.write("Machine Learning Based Heart Disease Prediction System")
+# --------------------------------
+# 5. Dashboard Tabs
+# --------------------------------
 
-st.warning(
-    "Educational project only. This application is not a medical "
-    "diagnosis tool and must not be used for medical decisions."
-)
+tab1, tab2 = st.tabs([
+    "📊 Project Dashboard",
+    "❤️ Patient Prediction"
+])
 
-# ---------------- NAVIGATION ----------------
-overview_tab, prediction_tab = st.tabs(
-    ["📊 Project Dashboard", "🩺 Patient Prediction"]
-)
+# =================================
+# TAB 1: PROJECT DASHBOARD
+# =================================
 
-# =================================================
-# DASHBOARD
-# =================================================
-with overview_tab:
+with tab1:
 
     st.header("Project Overview")
 
-    c1, c2, c3, c4 = st.columns(4)
+    # Dataset information
 
-    c1.metric("Total Records", "9,000")
-    c2.metric("Input Features", "10")
-    c3.metric("Training Records", "7,200")
-    c4.metric("Testing Records", "1,800")
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric("Total Records", "9,000")
+    col2.metric("Features", "10")
+    col3.metric("Training Records", "7,200")
+    col4.metric("Testing Records", "1,800")
 
     st.divider()
+
+    # Model performance
 
     st.subheader("Model Performance")
 
-    a, b, c, d = st.columns(4)
+    col1, col2 = st.columns(2)
 
-    a.metric("Best Accuracy", "77.39%", "Random Forest")
-    b.metric("Best Precision", "69.27%", "Random Forest")
-    c.metric("Best Recall", "46.06%", "Logistic Regression / Decision Tree")
-    d.metric("Best F1 Score", "55.10%", "Logistic Regression")
+    col1.metric(
+        "Best Accuracy",
+        "77.39%",
+        "Random Forest"
+    )
+
+    col2.metric(
+        "Best Precision",
+        "69.27%",
+        "Random Forest"
+    )
+
+    # Model comparison graph
 
     st.divider()
 
-    st.subheader("Model Comparison")
+    st.subheader("Machine Learning Model Comparison")
 
-    st.write("Compare all four performance metrics")
+    st.write(
+        "Comparison of Accuracy, Precision, Recall "
+        "and F1-score for all four models."
+    )
 
     chart_data = results.set_index("Model")[
-    ["Accuracy", "Precision", "Recall", "F1 Score"]
+        ["Accuracy", "Precision", "Recall", "F1-score"]
     ]
 
-    st.bar_chart(
-    chart_data,
-    height=450
-     )
+    st.bar_chart(chart_data)
 
-    
-    import matplotlib.pyplot as plt
-    
-    # Get feature names and Logistic Regression coefficients
-    coefficients = model.coef_[0]
-    
-    coef_df = pd.DataFrame({
-        "Feature": features,
-        "Coefficient": coefficients
-    })
-    
-    # Sort features by coefficient
-    coef_df = coef_df.sort_values(
-        by="Coefficient",
-        ascending=True
-    )
-    
+    # Complete model results
+
     st.divider()
-    st.subheader("Logistic Regression - Feature Coefficients")
-    
-    fig, ax = plt.subplots(figsize=(10, 6))
-    
-    ax.barh(
-        coef_df["Feature"],
-        coef_df["Coefficient"]
+
+    st.subheader("Complete Model Results")
+
+    st.dataframe(
+        results.set_index("Model").style.format("{:.2%}"),
+        use_container_width=True
     )
-    
-    ax.axvline(0, linestyle="--", linewidth=1)
-    
-    ax.set_xlabel("Coefficient Value")
-    ax.set_ylabel("Patient Features")
-    ax.set_title("Feature Coefficient Analysis")
-    
-    plt.tight_layout()
-    
-    st.pyplot(fig)
-    plt.close(fig)
-    
+
+    # Confusion matrix
+
+    st.divider()
+
+    st.subheader("Confusion Matrix - Logistic Regression")
+
+    confusion = pd.DataFrame(
+        [[1140, 115], [294, 251]],
+        index=["Actual: No Disease", "Actual: Disease"],
+        columns=["Predicted: No Disease", "Predicted: Disease"]
+    )
+
+    st.dataframe(
+        confusion,
+        use_container_width=True
+    )
+
     st.caption(
-        "Positive coefficients increase the model's predicted log-odds "
-        "for class 1; negative coefficients decrease them. "
-        "These values do not show causation."
+        "The confusion matrix shows correct and incorrect "
+        "predictions made by the Logistic Regression model."
     )
-    
+
+    # PCA visualization
 
     st.divider()
 
-    st.subheader("PCA Visualization Information")
+    st.subheader("PCA - Principal Component Analysis")
+
+    st.write(
+        "PCA reduces the original features into two principal "
+        "components for visualization."
+    )
 
     pca_data = pd.DataFrame({
-        "Component": ["PCA 1", "PCA 2"],
-        "Explained Variance (%)": [23.32, 17.52]
+        "Principal Component": ["PC1", "PC2"],
+        "Explained Variance": [23.32, 17.52]
     })
 
     st.bar_chart(
-        pca_data.set_index("Component"),
-        height=250
+        pca_data.set_index("Principal Component")
     )
 
-    st.metric("Total Variance Explained", "40.85%")
+    st.metric(
+        "Total Explained Variance",
+        "40.85%"
+    )
 
     st.caption(
-        "PCA reduces the original 10 features into two components "
-        "for visualization."
+        "The first two principal components explain approximately "
+        "40.85% of the total variance."
     )
 
-# =================================================
-# PATIENT PREDICTION
-# =================================================
-with prediction_tab:
+# =================================
+# TAB 2: PATIENT PREDICTION
+# =================================
 
-    st.header("Enter Patient Details")
+with tab2:
+
+    st.header("Heart Disease Prediction")
+
+    st.write(
+        "Enter the patient information below to get a "
+        "prediction from the trained Logistic Regression model."
+    )
+
+    # Patient input form
 
     with st.form("patient_form"):
+
+        st.subheader("Patient Information")
 
         col1, col2 = st.columns(2)
 
         with col1:
             age = st.number_input(
-                "Age", min_value=1, max_value=120, value=45
+                "Age",
+                min_value=1,
+                max_value=120,
+                value=45
             )
 
-            sex = st.selectbox("Sex", ["Male", "Female"])
+            sex = st.selectbox(
+                "Sex",
+                ["Male", "Female"]
+            )
 
             systolic = st.number_input(
-                "Resting Systolic BP", min_value=0.0, value=120.0
+                "Resting Systolic Blood Pressure",
+                min_value=0.0,
+                value=120.0
             )
 
             diastolic = st.number_input(
-                "Resting Diastolic BP", min_value=0.0, value=80.0
+                "Resting Diastolic Blood Pressure",
+                min_value=0.0,
+                value=80.0
             )
 
             cholesterol = st.number_input(
-                "Total Cholesterol", min_value=0.0, value=190.0
+                "Total Cholesterol",
+                min_value=0.0,
+                value=190.0
             )
 
         with col2:
-            hdl = st.number_input("HDL", min_value=0.0, value=50.0)
 
-            ldl = st.number_input("LDL", min_value=0.0, value=110.0)
+            hdl = st.number_input(
+                "HDL",
+                min_value=0.0,
+                value=50.0
+            )
+
+            ldl = st.number_input(
+                "LDL",
+                min_value=0.0,
+                value=110.0
+            )
 
             triglycerides = st.number_input(
-                "Triglycerides", min_value=0.0, value=130.0
+                "Triglycerides",
+                min_value=0.0,
+                value=130.0
             )
 
             fasting_sugar = st.number_input(
-                "Fasting Blood Sugar", min_value=0.0, value=95.0
+                "Fasting Blood Sugar",
+                min_value=0.0,
+                value=95.0
             )
 
             family_history = st.selectbox(
-                "Family History", ["No", "Yes"]
+                "Family History of Heart Disease",
+                ["No", "Yes"]
             )
 
         submit = st.form_submit_button(
-            "Predict Heart Disease",
+            "Predict",
             use_container_width=True
         )
+
+    # Prediction
 
     if submit:
 
@@ -222,34 +292,54 @@ with prediction_tab:
         }
 
         patient_df = pd.DataFrame([patient_data])
+
+        # Arrange features in training order
+
         patient_df = patient_df[features]
 
-        scaled_data = scaler.transform(patient_df)
+        # Apply the saved scaler
 
-        prediction = model.predict(scaled_data)[0]
+        patient_scaled = scaler.transform(patient_df)
+
+        # Make prediction
+
+        prediction = model.predict(patient_scaled)
 
         st.divider()
+
         st.subheader("Prediction Result")
 
-        if prediction == 1:
-            st.error("Model Prediction: Heart Disease Detected")
+        if prediction[0] == 1:
+
+            st.error(
+                "Model Prediction: Heart Disease Detected"
+            )
+
         else:
-            st.success("Model Prediction: No Heart Disease Detected")
 
-        probability = model.predict_proba(scaled_data)[0][1]
+            st.success(
+                "Model Prediction: No Heart Disease Detected"
+            )
 
-        st.write("Model-estimated probability for class 1:")
-        st.progress(float(probability))
-        st.write(f"{probability * 100:.2f}%")
+        # Display model-estimated probability if available
 
-        st.caption(
-            "This probability is the model's output, not a clinically "
-            "validated estimate of an individual's actual disease risk."
+        if hasattr(model, "predict_proba"):
+
+            probability = model.predict_proba(patient_scaled)[0][1]
+
+            st.write(
+                "Model-estimated probability for class 1:"
+            )
+
+            st.progress(float(probability))
+
+            st.metric(
+                "Model Probability",
+                f"{probability * 100:.2f}%"
+            )
+
+        st.warning(
+            "This prediction is generated by a machine learning "
+            "model. It is not a medically validated risk estimate "
+            "and must not be used for medical decisions."
         )
-
-# ---------------- FOOTER ----------------
-st.divider()
-st.caption(
-    "Heart Disease Risk Prediction | Machine Learning Project | "
-    "For Educational Purposes Only"
-)

@@ -88,27 +88,50 @@ with overview_tab:
     height=450
      )
 
-    st.subheader("Complete Model Results")
-    st.dataframe(
-        results.set_index("Model").style.format("{:.2%}"),
-        use_container_width=True
+    
+    import matplotlib.pyplot as plt
+    
+    # Get feature names and Logistic Regression coefficients
+    coefficients = model.coef_[0]
+    
+    coef_df = pd.DataFrame({
+        "Feature": features,
+        "Coefficient": coefficients
+    })
+    
+    # Sort features by coefficient
+    coef_df = coef_df.sort_values(
+        by="Coefficient",
+        ascending=True
     )
-
+    
     st.divider()
-
-    st.subheader("Confusion Matrix - Logistic Regression")
-
-    confusion = pd.DataFrame(
-        [[1140, 115], [294, 251]],
-        index=["Actual: No Disease", "Actual: Disease"],
-        columns=["Predicted: No Disease", "Predicted: Disease"]
+    st.subheader("Logistic Regression - Feature Coefficients")
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    ax.barh(
+        coef_df["Feature"],
+        coef_df["Coefficient"]
     )
-
-    st.dataframe(confusion, use_container_width=True)
-
+    
+    ax.axvline(0, linestyle="--", linewidth=1)
+    
+    ax.set_xlabel("Coefficient Value")
+    ax.set_ylabel("Patient Features")
+    ax.set_title("Feature Coefficient Analysis")
+    
+    plt.tight_layout()
+    
+    st.pyplot(fig)
+    plt.close(fig)
+    
     st.caption(
-        "Rows represent actual classes and columns represent predicted classes."
+        "Positive coefficients increase the model's predicted log-odds "
+        "for class 1; negative coefficients decrease them. "
+        "These values do not show causation."
     )
+    
 
     st.divider()
 

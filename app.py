@@ -77,18 +77,16 @@ with overview_tab:
 
     st.subheader("Model Comparison")
 
-    metric_choice = st.selectbox(
-        "Choose performance metric",
-        ["Accuracy", "Precision", "Recall", "F1 Score"]
-    )
+    st.write("Compare all four performance metrics")
 
-    chart_data = results[["Model", metric_choice]].set_index("Model")
+    chart_data = results.set_index("Model")[
+    ["Accuracy", "Precision", "Recall", "F1 Score"]
+    ]
 
     st.bar_chart(
-        chart_data,
-        y=metric_choice,
-        height=350
-    )
+    chart_data,
+    height=450
+     )
 
     st.subheader("Complete Model Results")
     st.dataframe(
